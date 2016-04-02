@@ -1,6 +1,9 @@
 # small_star_empires
 
-FIXME: Write a one-line description of your library/project.
+<iframe width="480" height="360" src="https://www.kickstarter.com/projects/archonagames/small-star-empires/widget/video.html" frameborder="0" scrolling="no"> </iframe>
+
+![](https://ksr-ugc.imgix.net/assets/005/398/370/cce7b40e8a3cf02d788d307d560a65ef_original.gif?w=680&fit=max&v=1456077896&q=92&s=a03824100f54e30c258cb734e98a7fa6)
+
 
 ## Overview
 
