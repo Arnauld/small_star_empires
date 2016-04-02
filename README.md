@@ -1,6 +1,8 @@
 # small_star_empires
 
-<iframe width="480" height="360" src="https://www.kickstarter.com/projects/archonagames/small-star-empires/widget/video.html" frameborder="0" scrolling="no"> </iframe>
+https://www.kickstarter.com/projects/archonagames/small-star-empires
+
+A quick game of galactic colonization and domination for 2-4 players.
 
 ![](https://ksr-ugc.imgix.net/assets/005/398/370/cce7b40e8a3cf02d788d307d560a65ef_original.gif?w=680&fit=max&v=1456077896&q=92&s=a03824100f54e30c258cb734e98a7fa6)
 
