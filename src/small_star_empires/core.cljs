@@ -24,6 +24,7 @@
     :nova-red "#f22"
     :nova-blue "#0af"
     :nova-green "#0fa"
+    :homeworld-green "#0f0"
     "#181818"))
 
 (defn block [x y color]
@@ -72,6 +73,18 @@
                          :stroke-linejoin "round"}
                 :points (format-points (hex-points x y radiusToUse))}])))
 
+(defn draw-hex-dashed
+  ([x y radius color]
+   (draw-hex-dashed x y radius color 2))
+  ([x y radius color rounded-radius]
+   (let [radiusToUse (- radius (* 0.75 rounded-radius))]
+     [:polygon {:style  {:fill             "none"
+                         :stroke           (rgb color)
+                         :stroke-width     (str rounded-radius "px")
+                         :stroke-linejoin  "round"
+                         :stroke-dasharray (string/join "," [(/ radius 5) (/ radius 5)])}
+                :points (format-points (hex-points x y radiusToUse))}])))
+
 (defn fill-circle
   ([x y radius color]
    (fill-circle x y radius color 2))
@@ -109,12 +122,26 @@
              :r     radius}]))
 
 
-(defn draw-planet-orbit [x y orbit-radius orbit-angle]
-  [(draw-circle x y orbit-radius :grey 1)
-   (fill-circle (+ x (* orbit-radius (Math/cos orbit-angle)))
-                (+ y (* orbit-radius (Math/sin orbit-angle))) 4 :black)
-   (fill-circle (+ x (* orbit-radius (Math/cos orbit-angle)))
-                (+ y (* orbit-radius (Math/sin orbit-angle))) 2 :white)])
+(defn draw-planet-orbit
+  ([x y orbit-radius orbit-angle]
+    (draw-planet-orbit x y orbit-radius orbit-angle :grey :white))
+  ([x y orbit-radius orbit-angle orbit-color planet-color]
+   [(draw-circle x y orbit-radius orbit-color 1)
+    (fill-circle (+ x (* orbit-radius (Math/cos orbit-angle)))
+                 (+ y (* orbit-radius (Math/sin orbit-angle))) 4 :black)
+    (fill-circle (+ x (* orbit-radius (Math/cos orbit-angle)))
+                 (+ y (* orbit-radius (Math/sin orbit-angle))) 2 planet-color)]))
+
+(defn draw-homeworld [x y]
+  (let [homeworld-color :homeworld-green
+        ANG1 (* TWO_PI 0.66)
+        ANG2 (* TWO_PI 0.12)]
+    (-> [(fill-hex x y 40 :black)
+         (draw-hex-dashed x y 35 homeworld-color)
+         (draw-circle x y 15 :grey 1)
+         (fill-circle x y 1 homeworld-color)]
+        (into (draw-planet-orbit x y 15 ANG1 homeworld-color homeworld-color))
+        (into (draw-planet-orbit x y 22 ANG2 homeworld-color homeworld-color)))))
 
 (defn draw-planet [x y]
   (-> [(fill-hex x y 40 :black)
@@ -213,6 +240,9 @@
         (into
           (draw-planet
             (+ x deltaX2 deltaX2) (+ y deltaY2)))
+        (into
+          (draw-homeworld
+            (+ x deltaX2 deltaX2 deltaX) (+ y deltaY)))
         (into
           (draw-planet-2
             (+ x deltaX2 deltaX2) (+ y deltaY2 deltaY2)))
