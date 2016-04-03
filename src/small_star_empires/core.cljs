@@ -115,6 +115,16 @@
     (-> [(fill-hex x y 40 :black)
          (draw-hex x y 35 :grey)
          (fill-circle x y 1 :white)]
+        (into (draw-planet-orbit x y 15 ANG2))
+        (into (draw-planet-orbit x y 22 ANG3)))))
+
+(defn draw-planet-3 [x y]
+  (let [ANG1 (/ TWO_PI 7)
+        ANG2 (/ TWO_PI 2)
+        ANG3 (* TWO_PI 0.8)]
+    (-> [(fill-hex x y 40 :black)
+         (draw-hex x y 35 :grey)
+         (fill-circle x y 1 :white)]
         (into (draw-planet-orbit x y 10 ANG2))
         (into (draw-planet-orbit x y 17 ANG3))
         (into (draw-planet-orbit x y 24 ANG1)))))
@@ -148,6 +158,9 @@
             (+ x deltaX2 deltaX2) (+ y deltaY2)))
         (into
           (draw-planet-2
+            (+ x deltaX2 deltaX2) (+ y deltaY2 deltaY2)))
+        (into
+          (draw-planet-3
             (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY))))))
 
 (defn hello-world []
