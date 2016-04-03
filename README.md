@@ -1,3 +1,9 @@
+This project is strongely inspired from [**Small Star Empires**](https://www.kickstarter.com/projects/archonagames/small-star-empires) from KickStarter
+
+The purpose of this project is only to learn clojurescript by using an actual game with all its set of rules. Of course, I hope it will also do some advertisement for this game, encouraging you to buy to the board game!
+
+![](https://ksr-ugc.imgix.net/assets/005/618/714/4ba46dd009a2e125c673b8ad01aaca0c_original.png?w=680&fit=max&v=1459334271&auto=format&lossless=true&s=6eddc59179992338e0a4ce466bdd4ad4)
+
 https://www.kickstarter.com/projects/archonagames/small-star-empires
 
 ![](https://ksr-ugc.imgix.net/assets/005/398/383/bd8bb4cbeedc6f21abc1dc368e52a93b_original.jpg?w=680&fit=max&v=1456078134&auto=format&q=92&s=2150fbd723a5d0bb02598a0a08de6227)
