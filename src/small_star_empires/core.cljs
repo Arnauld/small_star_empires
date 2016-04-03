@@ -21,6 +21,9 @@
     :black "#000"
     :white "#fff"
     :grey "#777"
+    :nova-red "#f22"
+    :nova-blue "#0af"
+    :nova-green "#0fa"
     "#181818"))
 
 (defn block [x y color]
@@ -81,6 +84,18 @@
              :cy    y
              :r     radius}]))
 
+(defn blurred-circle
+  ([x y radius color mode]
+   (blurred-circle x y radius color mode 2))
+  ([x y radius color mode rounded-radius]
+   [:circle {:style {:fill         (rgb color)
+                     :stroke       (rgb color)
+                     :stroke-width (str rounded-radius "px")
+                     :filter       (str "url(#" mode ")")}
+             :cx    x
+             :cy    y
+             :r     radius}]))
+
 (defn draw-circle
   ([x y radius color]
    (draw-circle x y radius color 2))
@@ -109,8 +124,7 @@
       (into (draw-planet-orbit x y 15 PI_D3))))
 
 (defn draw-planet-2 [x y]
-  (let [ANG1 (/ TWO_PI 7)
-        ANG2 (/ TWO_PI 2)
+  (let [ANG2 (/ TWO_PI 2)
         ANG3 (* TWO_PI 0.8)]
     (-> [(fill-hex x y 40 :black)
          (draw-hex x y 35 :grey)
@@ -129,6 +143,21 @@
         (into (draw-planet-orbit x y 17 ANG3))
         (into (draw-planet-orbit x y 24 ANG1)))))
 
+(defn draw-nova [x y nova-color]
+  (-> [(fill-hex x y 40 :black)
+       (draw-hex x y 35 :grey)]
+      (into [(blurred-circle x y 10 nova-color "blur1")
+             (blurred-circle x y 5 :white "blur4")
+             (blurred-circle x (- y 13) 10 nova-color "blur1")
+             (blurred-circle x (- y 13) 5 :white "blur4")
+             (blurred-circle (+ x 15) (- y 5) 8 nova-color "blur2")
+             (blurred-circle (- x 15) (- y 12) 8 nova-color "blur2")
+             (blurred-circle (- x 15) (- y 12) 4 :white "blur4")
+             (blurred-circle (- x 10) (- y 7) 4 :white "blur4")
+             (blurred-circle (- x 2) (+ y 15) 10 nova-color "blur3")
+             (blurred-circle (- x 2) (+ y 15) 4 :white "blur4")
+             ])))
+
 (defn board-view []
   (let [radius 40
         width (* 2 radius)
@@ -144,6 +173,34 @@
                                :height 300}
                     :view-box (string/join " " [0 0 400 400])}]]
     (-> root
+        (conj [:defs [:filter {:id     "blur1"
+                               :x      -5
+                               :y      -5
+                               :height 20
+                               :width  20}
+                      ["feGaussianBlur" {:in           "SourceGraphic"
+                                         :stdDeviation "10"}]]])
+        (conj [:defs [:filter {:id     "blur2"
+                               :x      -5
+                               :y      -5
+                               :height 15
+                               :width  15}
+                      ["feGaussianBlur" {:in           "SourceGraphic"
+                                         :stdDeviation "7"}]]])
+        (conj [:defs [:filter {:id     "blur3"
+                               :x      -5
+                               :y      -5
+                               :height 15
+                               :width  15}
+                      ["feGaussianBlur" {:in           "SourceGraphic"
+                                         :stdDeviation "6"}]]])
+        (conj [:defs [:filter {:id     "blur4"
+                               :x      -5
+                               :y      -5
+                               :height 15
+                               :width  15}
+                      ["feGaussianBlur" {:in           "SourceGraphic"
+                                         :stdDeviation "3"}]]])
         (into
           [(fill-hex x y radius :pink)
            (fill-hex x (+ y deltaY2) radius :darkred)
@@ -161,7 +218,17 @@
             (+ x deltaX2 deltaX2) (+ y deltaY2 deltaY2)))
         (into
           (draw-planet-3
-            (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY))))))
+            (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY)))
+        (into
+          (draw-nova
+            (+ x deltaX2 deltaX2) (+ y deltaY2 deltaY2 deltaY2) :nova-red))
+        (into
+          (draw-nova
+            (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY2 deltaY2 deltaY) :nova-blue))
+        (into
+          (draw-nova
+            (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY2 deltaY) :nova-green))
+        )))
 
 (defn hello-world []
   [:h1 (:text @app-state)
