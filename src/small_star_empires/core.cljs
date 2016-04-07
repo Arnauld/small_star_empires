@@ -9,7 +9,7 @@
 
 ;; define your app data so that it doesn't get over-written on reload
 
-(defonce app-state (atom {:text "Hello world!"}))
+(defonce app-state (atom {:text "Small Star Empires!"}))
 
 (defn rgb [color]
   (case color
@@ -25,16 +25,6 @@
     :nova-green "#0fa"
     :homeworld-green "#0f0"
     "#181818"))
-
-(defn block [x y color]
-  [:rect {:x            x
-          :y            y
-          :width        1
-          :height       1
-          :stroke       "black"
-          :stroke-width 0.01
-          :rx           0.1
-          :fill         (rgb color)}])
 
 (def TWO_PI (* 2 Math/PI))
 (def PI_D3 (/ Math/PI 3))
@@ -81,7 +71,8 @@
   ([x y orbit-radius orbit-angle]
    (draw-planet-orbit x y orbit-radius orbit-angle :grey :white))
   ([x y orbit-radius orbit-angle orbit-color planet-color]
-   [(circle x y orbit-radius orbit-color {:fill         "none"
+   [:g {:class "orbit"}
+    (circle x y orbit-radius orbit-color {:fill         "none"
                                           :stroke-width 1})
     (circle (+ x (* orbit-radius (Math/cos orbit-angle)))
             (+ y (* orbit-radius (Math/sin orbit-angle))) 4 :black)
@@ -92,46 +83,51 @@
   (let [homeworld-color :homeworld-green
         ANG1 (* TWO_PI 0.66)
         ANG2 (* TWO_PI 0.12)]
-    (-> [(hex x y 40 :black)
-         (hex x y 35 homeworld-color {:fill             "none"
-                                      :rounded-radius   2
-                                      :stroke-dasharray "7,7"})
-         (circle x y 15 :grey {:fill         "none"
-                               :stroke-width 1})
-         (circle x y 1 homeworld-color)]
-        (into (draw-planet-orbit x y 15 ANG1 homeworld-color homeworld-color))
-        (into (draw-planet-orbit x y 22 ANG2 homeworld-color homeworld-color)))))
+    [:g
+     (hex x y 40 :black)
+     (hex x y 35 homeworld-color {:fill             "none"
+                                  :rounded-radius   2
+                                  :stroke-dasharray "7,7"})
+     (circle x y 15 :grey {:fill         "none"
+                           :stroke-width 1})
+     (circle x y 1 homeworld-color)
+     (draw-planet-orbit x y 15 ANG1 homeworld-color homeworld-color)
+     (draw-planet-orbit x y 22 ANG2 homeworld-color homeworld-color)]))
 
 (defn draw-planet [x y]
-  (-> [(hex x y 40 :black)
-       (hex x y 35 :grey {:fill           "none"
-                          :rounded-radius 2})
-       (circle x y 15 :grey {:fill         "none"
-                             :stroke-width 1})
-       (circle x y 1 :white)]
-      (into (draw-planet-orbit x y 15 PI_D3))))
+  (let [ANG1 PI_D3]
+    [:g {:class "planet"}
+     (hex x y 40 :black)
+     (hex x y 35 :grey {:fill           "none"
+                        :rounded-radius 2})
+     (circle x y 15 :grey {:fill         "none"
+                           :stroke-width 1})
+     (circle x y 1 :white)
+     (draw-planet-orbit x y 15 ANG1)]))
 
 (defn draw-planet-2 [x y]
   (let [ANG2 (/ TWO_PI 2)
         ANG3 (* TWO_PI 0.8)]
-    (-> [(hex x y 40 :black)
-         (hex x y 35 :grey {:fill           "none"
-                            :rounded-radius 2})
-         (circle x y 1 :white)]
-        (into (draw-planet-orbit x y 15 ANG2))
-        (into (draw-planet-orbit x y 22 ANG3)))))
+    [:g {:class "planet2"}
+     (hex x y 40 :black)
+     (hex x y 35 :grey {:fill           "none"
+                        :rounded-radius 2})
+     (circle x y 1 :white)
+     (draw-planet-orbit x y 15 ANG2)
+     (draw-planet-orbit x y 22 ANG3)]))
 
 (defn draw-planet-3 [x y]
   (let [ANG1 (/ TWO_PI 7)
         ANG2 (/ TWO_PI 2)
         ANG3 (* TWO_PI 0.8)]
-    (-> [(hex x y 40 :black)
-         (hex x y 35 :grey {:fill           "none"
-                            :rounded-radius 2})
-         (circle x y 1 :white)]
-        (into (draw-planet-orbit x y 10 ANG2))
-        (into (draw-planet-orbit x y 17 ANG3))
-        (into (draw-planet-orbit x y 24 ANG1)))))
+    [:g {:class "planet3"}
+     (hex x y 40 :black)
+     (hex x y 35 :grey {:fill           "none"
+                        :rounded-radius 2})
+     (circle x y 1 :white)
+     (draw-planet-orbit x y 10 ANG2)
+     (draw-planet-orbit x y 17 ANG3)
+     (draw-planet-orbit x y 24 ANG1)]))
 
 (defn draw-nova [x y nova-color]
   [:g {:class "nova"}
@@ -201,16 +197,16 @@
            (hex (+ x deltaX2) (+ y deltaY2 deltaY2) radius :darkblue)
            (hex (+ x deltaX2 deltaX2) y radius :pink)
            (hex (+ x deltaX2 deltaX2 deltaX2) y radius :pink)])
-        (into
+        (conj
           (draw-planet
             (+ x deltaX2 deltaX2) (+ y deltaY2)))
-        (into
+        (conj
           (draw-homeworld
             (+ x deltaX2 deltaX2 deltaX) (+ y deltaY)))
-        (into
+        (conj
           (draw-planet-2
             (+ x deltaX2 deltaX2) (+ y deltaY2 deltaY2)))
-        (into
+        (conj
           (draw-planet-3
             (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY)))
         (conj
