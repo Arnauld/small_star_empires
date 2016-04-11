@@ -24,6 +24,7 @@
     :nova-blue "#0af"
     :nova-green "#0fa"
     :homeworld-green "#0f0"
+    :red "#f00"
     "#181818"))
 
 (def TWO_PI (* 2 Math/PI))
@@ -94,7 +95,13 @@
      (draw-planet-orbit x y 15 ANG1 homeworld-color homeworld-color)
      (draw-planet-orbit x y 22 ANG2 homeworld-color homeworld-color)]))
 
-(defn draw-planet [x y]
+(defn draw-empty-space [x y]
+  [:g {:class "planet"}
+   (hex x y 40 :black)
+   (hex x y 35 :grey {:fill           "none"
+                      :rounded-radius 2})])
+
+(defn draw-planet-1 [x y]
   (let [ANG1 PI_D3]
     [:g {:class "planet"}
      (hex x y 40 :black)
@@ -145,6 +152,66 @@
    (circle (- x 2) (+ y 15) 10 nova-color {:filter "url(#blur3"})
    (circle (- x 2) (+ y 15) 4 :white {:filter "url(#blur4"})])
 
+(def default-svg-filters
+  [[:defs [:filter {:id     "blur1"
+                    :x      -5
+                    :y      -5
+                    :height 20
+                    :width  20}
+           ["feGaussianBlur" {:in           "SourceGraphic"
+                              :stdDeviation "10"}]]]
+   [:defs [:filter {:id     "blur2"
+                    :x      -5
+                    :y      -5
+                    :height 15
+                    :width  15}
+           ["feGaussianBlur" {:in           "SourceGraphic"
+                              :stdDeviation "7"}]]]
+   [:defs [:filter {:id     "blur3"
+                    :x      -5
+                    :y      -5
+                    :height 15
+                    :width  15}
+           ["feGaussianBlur" {:in           "SourceGraphic"
+                              :stdDeviation "6"}]]]
+   [:defs [:filter {:id     "blur4"
+                    :x      -5
+                    :y      -5
+                    :height 15
+                    :width  15}
+           ["feGaussianBlur" {:in           "SourceGraphic"
+                              :stdDeviation "3"}]]]])
+
+;
+;
+
+(def homeworld-tile
+  [[:empty :planet-2]
+   [:planet-1 :homeworld]])
+
+(defn render-tile [tile-def x y deltaX deltaY]
+  (let [tile-width (count tile-def)
+        tile-height (count (first tile-def))
+        offsetY (if (even? x) 0 1)]
+    (into [:g {:class "tile"}]
+          (for [i (range tile-width)
+                j (range tile-height)]
+            (let [col (+ x i)
+                  row (+ y j (if (= (mod col 2) (mod x 2)) offsetY 0))
+                  rx col
+                  rz (- row (if (even? col) 0 0.5))
+                  ;                  ry (+ rx rz)
+                  tx (* rx deltaX)
+                  ty (* rz (+ deltaY deltaY))
+                  ]
+              (case (get-in tile-def [j i])
+                :empty (draw-empty-space tx ty)
+                :planet-1 (draw-planet-1 tx ty)
+                :planet-2 (draw-planet-2 tx ty)
+                :planet-3 (draw-planet-3 tx ty)
+                :homeworld (draw-homeworld tx ty)
+                (hex tx ty 40 :red)))))))
+
 (defn board-view []
   (let [radius 40
         width (* 2 radius)
@@ -160,34 +227,7 @@
                                :height 300}
                     :view-box (string/join " " [0 0 400 400])}]]
     (-> root
-        (conj [:defs [:filter {:id     "blur1"
-                               :x      -5
-                               :y      -5
-                               :height 20
-                               :width  20}
-                      ["feGaussianBlur" {:in           "SourceGraphic"
-                                         :stdDeviation "10"}]]])
-        (conj [:defs [:filter {:id     "blur2"
-                               :x      -5
-                               :y      -5
-                               :height 15
-                               :width  15}
-                      ["feGaussianBlur" {:in           "SourceGraphic"
-                                         :stdDeviation "7"}]]])
-        (conj [:defs [:filter {:id     "blur3"
-                               :x      -5
-                               :y      -5
-                               :height 15
-                               :width  15}
-                      ["feGaussianBlur" {:in           "SourceGraphic"
-                                         :stdDeviation "6"}]]])
-        (conj [:defs [:filter {:id     "blur4"
-                               :x      -5
-                               :y      -5
-                               :height 15
-                               :width  15}
-                      ["feGaussianBlur" {:in           "SourceGraphic"
-                                         :stdDeviation "3"}]]])
+        (into default-svg-filters)
         (into
           [(hex x y radius :pink)
            (hex x (+ y deltaY2) radius :darkred)
@@ -197,27 +237,24 @@
            (hex (+ x deltaX2) (+ y deltaY2 deltaY2) radius :darkblue)
            (hex (+ x deltaX2 deltaX2) y radius :pink)
            (hex (+ x deltaX2 deltaX2 deltaX2) y radius :pink)])
-        (conj
-          (draw-planet
-            (+ x deltaX2 deltaX2) (+ y deltaY2)))
-        (conj
-          (draw-homeworld
-            (+ x deltaX2 deltaX2 deltaX) (+ y deltaY)))
-        (conj
-          (draw-planet-2
-            (+ x deltaX2 deltaX2) (+ y deltaY2 deltaY2)))
-        (conj
-          (draw-planet-3
-            (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY)))
-        (conj
-          (draw-nova
-            (+ x deltaX2 deltaX2) (+ y deltaY2 deltaY2 deltaY2) :nova-red))
-        (conj
-          (draw-nova
-            (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY2 deltaY2 deltaY) :nova-blue))
-        (conj
-          (draw-nova
-            (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY2 deltaY) :nova-green))
+        (into
+          [(render-tile homeworld-tile 0 1 deltaX deltaY)
+           (render-tile homeworld-tile 2 1 deltaX deltaY)
+           (render-tile homeworld-tile 1 4 deltaX deltaY)
+           (draw-planet-1
+             (+ x deltaX2 deltaX2) (+ y deltaY2))
+           (draw-homeworld
+             (+ x deltaX2 deltaX2 deltaX) (+ y deltaY))
+           (draw-planet-2
+             (+ x deltaX2 deltaX2) (+ y deltaY2 deltaY2))
+           (draw-planet-3
+             (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY))
+           (draw-nova
+             (+ x deltaX2 deltaX2) (+ y deltaY2 deltaY2 deltaY2) :nova-red)
+           (draw-nova
+             (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY2 deltaY2 deltaY) :nova-blue)
+           (draw-nova
+             (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY2 deltaY) :nova-green)])
         )))
 
 (defn hello-world []
