@@ -186,8 +186,8 @@
 ;
 
 (def homeworld-tile
-  [[:empty :planet-2]
-   [:planet-1 :homeworld]])
+  (list (list :empty :planet-2)
+        (list :planet-1 :homeworld)))
 
 (defn render-tile [tile-def x y deltaX deltaY]
   (let [tile-width (count tile-def)
@@ -204,13 +204,16 @@
                   tx (* rx deltaX)
                   ty (* rz (+ deltaY deltaY))
                   ]
-              (case (get-in tile-def [j i])
+              (case (nth (nth tile-def j) i)
                 :empty (draw-empty-space tx ty)
                 :planet-1 (draw-planet-1 tx ty)
                 :planet-2 (draw-planet-2 tx ty)
                 :planet-3 (draw-planet-3 tx ty)
                 :homeworld (draw-homeworld tx ty)
                 (hex tx ty 40 :red)))))))
+
+(defn flip-tile [tile]
+  (reverse (map #(reverse %) tile)))
 
 (defn board-view []
   (let [radius 40
@@ -239,8 +242,8 @@
            (hex (+ x deltaX2 deltaX2 deltaX2) y radius :pink)])
         (into
           [(render-tile homeworld-tile 0 1 deltaX deltaY)
-           (render-tile homeworld-tile 2 1 deltaX deltaY)
-           (render-tile homeworld-tile 1 4 deltaX deltaY)
+           (render-tile homeworld-tile 3 1 deltaX deltaY)
+           (render-tile (flip-tile homeworld-tile) 1 4 deltaX deltaY)
            (draw-planet-1
              (+ x deltaX2 deltaX2) (+ y deltaY2))
            (draw-homeworld
