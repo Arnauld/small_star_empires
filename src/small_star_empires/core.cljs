@@ -182,12 +182,14 @@
            ["feGaussianBlur" {:in           "SourceGraphic"
                               :stdDeviation "3"}]]]])
 
-;
-;
-
 (def homeworld-tile
   (list (list :empty :planet-2)
         (list :planet-1 :homeworld)))
+
+(def t1a-tile
+  (list (list :planet-2 :nova-red :planet-1)
+        (list :nova-green :empty :planet-3)
+        (list :none :planet-1 :none)))
 
 (defn render-tile [tile-def x y deltaX deltaY]
   (let [tile-width (count tile-def)
@@ -195,7 +197,9 @@
         offsetY (if (even? x) 0 1)]
     (into [:g {:class "tile"}]
           (for [i (range tile-width)
-                j (range tile-height)]
+                j (range tile-height)
+                :let [part (nth (nth tile-def j) i)]
+                :when (not= part :none)]
             (let [col (+ x i)
                   row (+ y j (if (= (mod col 2) (mod x 2)) offsetY 0))
                   rx col
@@ -204,11 +208,13 @@
                   tx (* rx deltaX)
                   ty (* rz (+ deltaY deltaY))
                   ]
-              (case (nth (nth tile-def j) i)
+              (case part
                 :empty (draw-empty-space tx ty)
                 :planet-1 (draw-planet-1 tx ty)
                 :planet-2 (draw-planet-2 tx ty)
                 :planet-3 (draw-planet-3 tx ty)
+                :nova-red (draw-nova tx ty :nova-red)
+                :nova-green (draw-nova tx ty :nova-green)
                 :homeworld (draw-homeworld tx ty)
                 (hex tx ty 40 :red)))))))
 
@@ -232,18 +238,10 @@
     (-> root
         (into default-svg-filters)
         (into
-          [(hex x y radius :pink)
-           (hex x (+ y deltaY2) radius :darkred)
-           (hex (+ x deltaX) (+ y deltaY) radius :orange)
-           (hex (+ x deltaX2) y radius :darkblue)
-           (hex (+ x deltaX2) (+ y deltaY2) radius :darkred)
-           (hex (+ x deltaX2) (+ y deltaY2 deltaY2) radius :darkblue)
-           (hex (+ x deltaX2 deltaX2) y radius :pink)
-           (hex (+ x deltaX2 deltaX2 deltaX2) y radius :pink)])
-        (into
           [(render-tile homeworld-tile 0 1 deltaX deltaY)
            (render-tile homeworld-tile 3 1 deltaX deltaY)
            (render-tile (flip-tile homeworld-tile) 1 4 deltaX deltaY)
+           (render-tile t1a-tile 2 3 deltaX deltaY)
            (draw-planet-1
              (+ x deltaX2 deltaX2) (+ y deltaY2))
            (draw-homeworld
