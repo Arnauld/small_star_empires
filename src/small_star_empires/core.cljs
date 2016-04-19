@@ -29,9 +29,20 @@
 
 (def TWO_PI (* 2 Math/PI))
 (def PI_D3 (/ Math/PI 3))
-(def HEX (map (fn [i] [(Math/cos (* i PI_D3))
-                       (Math/sin (* i PI_D3))])
+(def PI_D6 (/ Math/PI 6))
+(def HEX (map (fn [i] [(Math/cos (+ PI_D6 (* i PI_D3)))
+                       (Math/sin (+ PI_D6 (* i PI_D3)))])
               (range 0 6)))
+
+(def SQRT3_DIV2 (/ (Math/sqrt 3) 2))
+
+(defn axial-to-px [radius [axial-x axial-y]]
+  (let [height (* 2 radius)
+        width (* height SQRT3_DIV2)
+        rx (+ (* width axial-x) (* 0.5 axial-y width))
+        ry (* 0.75 axial-y height)]
+    [rx ry]))
+
 
 (defn hex-points [x y radius]
   (map (fn [[hx hy]] [(+ x (* radius hx))
@@ -183,81 +194,63 @@
                               :stdDeviation "3"}]]]])
 
 (def homeworld-tile
-  (list (list :planet-2 :none :none)
-        (list :empty :homeworld :none)
-        (list :none :planet-1 :none)))
+  [{:dx 0 :dy -1 :type :planet-1}
+   {:dx -1 :dy 0 :type :empty} {:dx 0 :dy 0 :type :homeworld}
+   {:dx -1 :dy 1 :type :planet-1}])
 
 (def t1a-tile
-  (list (list :nova-red :planet-1 :planet-3)
-        (list :planet-2 :empty :planet-1)
-        (list :none :nova-green :none)))
+  [{:dx 0 :dy -1 :type :nova-red} {:dx 1 :dy -1 :type :planet-1}
+   {:dx -1 :dy 0 :type :planet-2} {:dx 0 :dy 0 :type :empty} {:dx 1 :dy 0 :type :planet-3}
+   {:dx -1 :dy 1 :type :nova-green} {:dx 0 :dy 1 :type :planet-1}])
 
-(defn render-tile [tile-def x y deltaX deltaY]
-  (let [tile-width (count tile-def)
-        tile-height (count (first tile-def))
-        offsetY (if (even? x) 0 1)]
-    (into [:g {:class "tile"}]
-          (for [j (range tile-width)
-                i (range tile-height)
-                :let [part (nth (nth tile-def j) i)]
-                :when (not= part :none)]
-            (let [col (+ x i)
-                  row (+ y j (if (= (mod col 2) (mod x 2)) offsetY 0))
-                  rx col
-                  rz (- row (if (even? col) 0 0.5))
-                  ;                  ry (+ rx rz)
-                  tx (* rx deltaX)
-                  ty (* rz (+ deltaY deltaY))
-                  ]
-              (case part
-                :empty (draw-empty-space tx ty)
-                :planet-1 (draw-planet-1 tx ty)
-                :planet-2 (draw-planet-2 tx ty)
-                :planet-3 (draw-planet-3 tx ty)
-                :nova-red (draw-nova tx ty :nova-red)
-                :nova-green (draw-nova tx ty :nova-green)
-                :homeworld (draw-homeworld tx ty)
-                (hex tx ty 40 :red)))))))
+(def t2a-tile
+  [{:dx 0 :dy -1 :type :nova-blue} {:dx 1 :dy -1 :type :planet-1}
+   {:dx -1 :dy 0 :type :planet-1} {:dx 0 :dy 0 :type :empty} {:dx 1 :dy 0 :type :planet-2}
+   {:dx -1 :dy 1 :type :planet-3} {:dx 0 :dy 1 :type :planet-1}])
 
-(defn flip-tile [tile]
-  (reverse (map #(reverse %) tile)))
+(defn render-tile [tile-defs radius [axial-x axial-y]]
+  (into [:g {:class "tile"}]
+        (map (fn [tile-def]
+               (let [dx (:dx tile-def)
+                     dy (:dy tile-def)
+                     tp (:type tile-def)
+                     [tx ty] (axial-to-px radius [(+ axial-x dx) (+ axial-y dy)])]
+                 (case tp
+                   :empty (draw-empty-space tx ty)
+                   :planet-1 (draw-planet-1 tx ty)
+                   :planet-2 (draw-planet-2 tx ty)
+                   :planet-3 (draw-planet-3 tx ty)
+                   :nova-red (draw-nova tx ty :nova-red)
+                   :nova-green (draw-nova tx ty :nova-green)
+                   :nova-blue (draw-nova tx ty :nova-blue)
+                   :homeworld (draw-homeworld tx ty)
+                   (hex tx ty 40 :red))))
+             tile-defs)))
 
 (defn board-view []
   (let [radius 40
-        width (* 2 radius)
-        height (* width (/ (Math/sqrt 3) 2))
-        deltaX (* width (/ 3 4))
-        deltaX2 (* 2 deltaX)
-        deltaY (/ height 2)
-        deltaY2 (* 2 deltaY)
-        x 40
-        y 40
         root [:svg {:style    {:border "1px solid black"
-                               :width  400
+                               :width  600
                                :height 300}
-                    :view-box (string/join " " [0 0 400 400])}]]
+                    :view-box (string/join " " [0 0 600 300])}]]
     (-> root
         (into default-svg-filters)
         (conj
-          (into [:g {:transform "rotate(30, 200, 200)"}]
-                [(render-tile homeworld-tile 0 2 deltaX deltaY)
+          (into [:g {:transform "scale(0.5)"}
+                 ]
+                [(render-tile homeworld-tile radius [1 2])
                  ;(render-tile homeworld-tile 3 1 deltaX deltaY)
                  ;(render-tile (flip-tile homeworld-tile) 1 4 deltaX deltaY)
-                 (render-tile t1a-tile 1 4 deltaX deltaY)
-                 (draw-planet-1
-                   (+ x deltaX2 deltaX2) (+ y deltaY2))
-                 (draw-homeworld
-                   (+ x deltaX2 deltaX2 deltaX) (+ y deltaY))
-                 (draw-planet-2
-                   (+ x deltaX2 deltaX2) (+ y deltaY2 deltaY2))
-                 (draw-planet-3
-                   (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY))
-                 (draw-nova
-                   (+ x deltaX2 deltaX2) (+ y deltaY2 deltaY2 deltaY2) :nova-red)
-                 (draw-nova
-                   (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY2 deltaY2 deltaY) :nova-blue)
-                 (draw-nova
-                   (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY2 deltaY) :nova-green)]))
+                 (render-tile t1a-tile radius [-1 6])
+                 (render-tile t2a-tile radius [3 6])
+                 (apply draw-planet-1 (axial-to-px radius [3 1]))
+                 (apply draw-planet-2 (axial-to-px radius [4 1]))
+                 (apply draw-planet-3 (axial-to-px radius [5 1]))
+                 (apply draw-nova (conj (axial-to-px radius [3 2]) :nova-red))
+                 (apply draw-nova (conj (axial-to-px radius [4 2]) :nova-blue))
+                 (apply draw-nova (conj (axial-to-px radius [5 2]) :nova-green))
+                 (apply draw-homeworld (axial-to-px radius [3 3]))
+                 ]))
         )))
 
 (defn hello-world []
