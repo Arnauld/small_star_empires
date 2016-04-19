@@ -183,21 +183,22 @@
                               :stdDeviation "3"}]]]])
 
 (def homeworld-tile
-  (list (list :empty :planet-2)
-        (list :planet-1 :homeworld)))
+  (list (list :planet-2 :none :none)
+        (list :empty :homeworld :none)
+        (list :none :planet-1 :none)))
 
 (def t1a-tile
-  (list (list :planet-2 :nova-red :planet-1)
-        (list :nova-green :empty :planet-3)
-        (list :none :planet-1 :none)))
+  (list (list :nova-red :planet-1 :planet-3)
+        (list :planet-2 :empty :planet-1)
+        (list :none :nova-green :none)))
 
 (defn render-tile [tile-def x y deltaX deltaY]
   (let [tile-width (count tile-def)
         tile-height (count (first tile-def))
         offsetY (if (even? x) 0 1)]
     (into [:g {:class "tile"}]
-          (for [i (range tile-width)
-                j (range tile-height)
+          (for [j (range tile-width)
+                i (range tile-height)
                 :let [part (nth (nth tile-def j) i)]
                 :when (not= part :none)]
             (let [col (+ x i)
@@ -237,25 +238,26 @@
                     :view-box (string/join " " [0 0 400 400])}]]
     (-> root
         (into default-svg-filters)
-        (into
-          [(render-tile homeworld-tile 0 1 deltaX deltaY)
-           (render-tile homeworld-tile 3 1 deltaX deltaY)
-           (render-tile (flip-tile homeworld-tile) 1 4 deltaX deltaY)
-           (render-tile t1a-tile 2 3 deltaX deltaY)
-           (draw-planet-1
-             (+ x deltaX2 deltaX2) (+ y deltaY2))
-           (draw-homeworld
-             (+ x deltaX2 deltaX2 deltaX) (+ y deltaY))
-           (draw-planet-2
-             (+ x deltaX2 deltaX2) (+ y deltaY2 deltaY2))
-           (draw-planet-3
-             (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY))
-           (draw-nova
-             (+ x deltaX2 deltaX2) (+ y deltaY2 deltaY2 deltaY2) :nova-red)
-           (draw-nova
-             (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY2 deltaY2 deltaY) :nova-blue)
-           (draw-nova
-             (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY2 deltaY) :nova-green)])
+        (conj
+          (into [:g {:transform "rotate(30, 200, 200)"}]
+                [(render-tile homeworld-tile 0 2 deltaX deltaY)
+                 ;(render-tile homeworld-tile 3 1 deltaX deltaY)
+                 ;(render-tile (flip-tile homeworld-tile) 1 4 deltaX deltaY)
+                 (render-tile t1a-tile 1 4 deltaX deltaY)
+                 (draw-planet-1
+                   (+ x deltaX2 deltaX2) (+ y deltaY2))
+                 (draw-homeworld
+                   (+ x deltaX2 deltaX2 deltaX) (+ y deltaY))
+                 (draw-planet-2
+                   (+ x deltaX2 deltaX2) (+ y deltaY2 deltaY2))
+                 (draw-planet-3
+                   (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY))
+                 (draw-nova
+                   (+ x deltaX2 deltaX2) (+ y deltaY2 deltaY2 deltaY2) :nova-red)
+                 (draw-nova
+                   (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY2 deltaY2 deltaY) :nova-blue)
+                 (draw-nova
+                   (+ x deltaX2 deltaX2 deltaX) (+ y deltaY2 deltaY2 deltaY) :nova-green)]))
         )))
 
 (defn hello-world []
