@@ -193,6 +193,31 @@
            ["feGaussianBlur" {:in           "SourceGraphic"
                               :stdDeviation "3"}]]]])
 
+(defn axial-to-cube [[axial-x axial-y]]
+  (let [x axial-x
+        z axial-y
+        y (* -1 (+ x z))]
+    [x y z]))
+
+(defn cube-to-axial [[x _ z]]
+  [x z])
+
+(defn negate [x] (* -1 x))
+
+(defn rotate-cube-coords [[x y z]]
+  [(negate z) (negate x) (negate y)])
+
+(defn rotate-tile [tile]
+  (map (fn [tile-def]
+         (let [axial-x (:dx tile-def)
+               axial-y (:dy tile-def)
+               [nx ny] (-> [axial-x axial-y]
+                           (axial-to-cube)
+                           (rotate-cube-coords)
+                           (cube-to-axial))]
+           (assoc tile-def :dx nx :dy ny)))
+       tile))
+
 (def homeworld-tile
   [{:dx 0 :dy -1 :type :planet-1}
    {:dx -1 :dy 0 :type :empty} {:dx 0 :dy 0 :type :homeworld}
@@ -243,6 +268,9 @@
                  ;(render-tile (flip-tile homeworld-tile) 1 4 deltaX deltaY)
                  (render-tile t1a-tile radius [-1 6])
                  (render-tile t2a-tile radius [3 6])
+                 (render-tile (rotate-tile t2a-tile) radius [7 6])
+                 (render-tile (rotate-tile homeworld-tile) radius [8 2])
+                 (render-tile (rotate-tile (rotate-tile homeworld-tile)) radius [11 2])
                  (apply draw-planet-1 (axial-to-px radius [3 1]))
                  (apply draw-planet-2 (axial-to-px radius [4 1]))
                  (apply draw-planet-3 (axial-to-px radius [5 1]))
