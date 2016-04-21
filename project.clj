@@ -18,13 +18,14 @@
   :plugins [[lein-figwheel "0.5.2"]
             [lein-cljsbuild "1.1.3" :exclusions [[org.clojure/clojure]]]]
 
-  :hooks [leiningen.cljsbuild]
-  :source-paths ["src-clj", "src-shared"]
+  ;:hooks [leiningen.cljsbuild]
+
+  :source-paths ["src-clj" "src-shared"]
+  :test-paths ["test-clj"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
 
-  :cljsbuild {:crossovers [small_star_empires/shared]
-              :builds
+  :cljsbuild {:builds
                           [{:id           "dev"
                             :source-paths ["src-cljs", "src-shared"]
 
@@ -44,7 +45,15 @@
                             :compiler     {:output-to     "resources/public/js/compiled/small_star_empires.js"
                                            :main          small_star_empires.core
                                            :optimizations :advanced
-                                           :pretty-print  false}}]}
+                                           :pretty-print  false}}
+                           ; This build is for the ClojureScript unit tests that will
+                           ; be run via PhantomJS.  See the phantom/unit-test.js file
+                           ; for details on how it's run.
+                           {:id           "test"
+                            :source-paths ["src-cljs", "src-shared", "test-cljs"]
+                            :compiler     {:output-to     "resources/private/js/unit-test.js"
+                                           :optimizations :whitespace
+                                           :pretty-print  true}}]}
 
   :figwheel {;; :http-server-root "public" ;; default and assumes "resources"
              ;; :server-port 3449 ;; default
