@@ -1,7 +1,8 @@
 (ns small_star_empires.core
   (:require
     [reagent.core :as reagent :refer [atom]]
-    [clojure.string :as string]))
+    [clojure.string :as string]
+    [small_star_empires.shared :as shared]))
 
 (enable-console-print!)
 
@@ -218,20 +219,6 @@
            (assoc tile-def :dx nx :dy ny)))
        tile))
 
-(def homeworld-tile
-  [{:dx 0 :dy -1 :type :planet-1}
-   {:dx -1 :dy 0 :type :empty} {:dx 0 :dy 0 :type :homeworld}
-   {:dx -1 :dy 1 :type :planet-1}])
-
-(def t1a-tile
-  [{:dx 0 :dy -1 :type :nova-red} {:dx 1 :dy -1 :type :planet-1}
-   {:dx -1 :dy 0 :type :planet-2} {:dx 0 :dy 0 :type :empty} {:dx 1 :dy 0 :type :planet-3}
-   {:dx -1 :dy 1 :type :nova-green} {:dx 0 :dy 1 :type :planet-1}])
-
-(def t2a-tile
-  [{:dx 0 :dy -1 :type :nova-blue} {:dx 1 :dy -1 :type :planet-1}
-   {:dx -1 :dy 0 :type :planet-1} {:dx 0 :dy 0 :type :empty} {:dx 1 :dy 0 :type :planet-2}
-   {:dx -1 :dy 1 :type :planet-3} {:dx 0 :dy 1 :type :planet-1}])
 
 (defn render-tile [tile-defs radius [axial-x axial-y]]
   (into [:g {:class "tile"}]
@@ -261,16 +248,15 @@
     (-> root
         (into default-svg-filters)
         (conj
-          (into [:g {:transform "scale(0.5)"}
-                 ]
-                [(render-tile homeworld-tile radius [1 2])
+          (into [:g {:transform "scale(0.5)"}]
+                [(render-tile shared/homeworld-tile radius [1 2])
                  ;(render-tile homeworld-tile 3 1 deltaX deltaY)
                  ;(render-tile (flip-tile homeworld-tile) 1 4 deltaX deltaY)
-                 (render-tile t1a-tile radius [-1 6])
-                 (render-tile t2a-tile radius [3 6])
-                 (render-tile (rotate-tile t2a-tile) radius [7 6])
-                 (render-tile (rotate-tile homeworld-tile) radius [8 2])
-                 (render-tile (rotate-tile (rotate-tile homeworld-tile)) radius [11 2])
+                 (render-tile shared/t1a-tile radius [-1 6])
+                 (render-tile shared/t2a-tile radius [3 6])
+                 (render-tile (rotate-tile shared/t2a-tile) radius [7 6])
+                 (render-tile (rotate-tile shared/homeworld-tile) radius [8 2])
+                 (render-tile (rotate-tile (rotate-tile shared/homeworld-tile)) radius [11 2])
                  (apply draw-planet-1 (axial-to-px radius [3 1]))
                  (apply draw-planet-2 (axial-to-px radius [4 1]))
                  (apply draw-planet-3 (axial-to-px radius [5 1]))

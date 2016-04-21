@@ -18,31 +18,33 @@
   :plugins [[lein-figwheel "0.5.2"]
             [lein-cljsbuild "1.1.3" :exclusions [[org.clojure/clojure]]]]
 
-  :source-paths ["src"]
+  :hooks [leiningen.cljsbuild]
+  :source-paths ["src-clj", "src-shared"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
 
-  :cljsbuild {:builds
-              [{:id           "dev"
-                :source-paths ["src"]
+  :cljsbuild {:crossovers [small_star_empires/shared]
+              :builds
+                          [{:id           "dev"
+                            :source-paths ["src-cljs", "src-shared"]
 
-                ;; If no code is to be run, set :figwheel true for continued automagical reloading
-                :figwheel     {:on-jsload "small_star_empires.core/on-js-reload"}
+                            ;; If no code is to be run, set :figwheel true for continued automagical reloading
+                            :figwheel     {:on-jsload "small_star_empires.core/on-js-reload"}
 
-                :compiler     {:main                 small_star_empires.core
-                               :asset-path           "js/compiled/out"
-                               :output-to            "resources/public/js/compiled/small_star_empires.js"
-                               :output-dir           "resources/public/js/compiled/out"
-                               :source-map-timestamp true}}
-               ;; This next build is an compressed minified build for
-               ;; production. You can build this with:
-               ;; lein cljsbuild once min
-               {:id           "min"
-                :source-paths ["src"]
-                :compiler     {:output-to     "resources/public/js/compiled/small_star_empires.js"
-                               :main          small_star_empires.core
-                               :optimizations :advanced
-                               :pretty-print  false}}]}
+                            :compiler     {:main                 small_star_empires.core
+                                           :asset-path           "js/compiled/out"
+                                           :output-to            "resources/public/js/compiled/small_star_empires.js"
+                                           :output-dir           "resources/public/js/compiled/out"
+                                           :source-map-timestamp true}}
+                           ;; This next build is an compressed minified build for
+                           ;; production. You can build this with:
+                           ;; lein cljsbuild once min
+                           {:id           "min"
+                            :source-paths ["src-cljs", "src-shared"]
+                            :compiler     {:output-to     "resources/public/js/compiled/small_star_empires.js"
+                                           :main          small_star_empires.core
+                                           :optimizations :advanced
+                                           :pretty-print  false}}]}
 
   :figwheel {;; :http-server-root "public" ;; default and assumes "resources"
              ;; :server-port 3449 ;; default
