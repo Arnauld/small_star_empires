@@ -21,6 +21,7 @@
     :black "#000"
     :white "#fff"
     :grey "#777"
+    :light-grey "#bbb"
     :nova-red "#f22"
     :nova-blue "#0af"
     :nova-green "#0fa"
@@ -194,31 +195,18 @@
            ["feGaussianBlur" {:in           "SourceGraphic"
                               :stdDeviation "3"}]]]])
 
-(defn axial-to-cube [[axial-x axial-y]]
-  (let [x axial-x
-        z axial-y
-        y (* -1 (+ x z))]
-    [x y z]))
-
-(defn cube-to-axial [[x _ z]]
-  [x z])
-
-(defn negate [x] (* -1 x))
-
-(defn rotate-cube-coords [[x y z]]
-  [(negate z) (negate x) (negate y)])
-
-(defn rotate-tile [tile]
-  (map (fn [tile-def]
-         (let [axial-x (:dx tile-def)
-               axial-y (:dy tile-def)
-               [nx ny] (-> [axial-x axial-y]
-                           (axial-to-cube)
-                           (rotate-cube-coords)
-                           (cube-to-axial))]
-           (assoc tile-def :dx nx :dy ny)))
-       tile))
-
+(defn render-grid [radius [min-axial-x min-axial-y max-axial-x max-axial-y]]
+  (into [:g {:class "grid"}]
+        (for [x (range min-axial-x max-axial-x)
+              y (range min-axial-y max-axial-y)]
+          (let [[tx ty] (axial-to-px radius [x y])]
+            [:g {:class "grid-cell"}
+             (hex tx ty (dec radius) :light-grey {:fill           "none"
+                                                  :rounded-radius 1})
+             [:text {:x     (- tx 10)
+                     :y     ty
+                     :style {:font-size "20px"
+                             :fill      (rgb :light-grey)}} (str x "," y)]]))))
 
 (defn render-tile [tile-defs radius [axial-x axial-y]]
   (into [:g {:class "tile"}]
@@ -254,9 +242,9 @@
                  ;(render-tile (flip-tile homeworld-tile) 1 4 deltaX deltaY)
                  (render-tile shared/t1a-tile radius [-1 6])
                  (render-tile shared/t2a-tile radius [3 6])
-                 (render-tile (rotate-tile shared/t2a-tile) radius [7 6])
-                 (render-tile (rotate-tile shared/homeworld-tile) radius [8 2])
-                 (render-tile (rotate-tile (rotate-tile shared/homeworld-tile)) radius [11 2])
+                 (render-tile (shared/rotate-tile shared/t2a-tile) radius [7 6])
+                 (render-tile (shared/rotate-tile shared/homeworld-tile) radius [8 2])
+                 (render-tile (shared/rotate-tile (shared/rotate-tile shared/homeworld-tile)) radius [11 2])
                  (apply draw-planet-1 (axial-to-px radius [3 1]))
                  (apply draw-planet-2 (axial-to-px radius [4 1]))
                  (apply draw-planet-3 (axial-to-px radius [5 1]))
@@ -264,6 +252,7 @@
                  (apply draw-nova (conj (axial-to-px radius [4 2]) :nova-blue))
                  (apply draw-nova (conj (axial-to-px radius [5 2]) :nova-green))
                  (apply draw-homeworld (axial-to-px radius [3 3]))
+                 (render-grid radius [-10 0 20 30])
                  ]))
         )))
 
