@@ -203,9 +203,11 @@
             [:g {:class "grid-cell"}
              (hex tx ty (dec radius) :light-grey {:fill           "none"
                                                   :rounded-radius 1})
-             [:text {:x     (- tx 10)
+             [:text {:x     tx
                      :y     ty
+                     :text-anchor "middle"
                      :style {:font-size "20px"
+                             :dominant-baseline "central"
                              :fill      (rgb :light-grey)}} (str x "," y)]]))))
 
 (defn render-tile [tile-defs radius [axial-x axial-y]]
