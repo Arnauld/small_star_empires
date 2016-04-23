@@ -63,3 +63,7 @@
 (defn assemble [tiles]
   (reduce (fn [acc tile]
             (project-tile-into acc tile)) {} tiles))
+
+(defn cells-in-error [assembled-grid]
+  (filter (fn [[k v]]
+            (< 1 (count v)))))

@@ -19,13 +19,24 @@
                              (shared/tile 0 0 shared/homeworld-tile)]))))
 
   (testing "single tile twice with rotation"
-    (is (= {[4 6] [:planet-1 :planet-1],
-            [3 7] [:empty],
-            [4 7] [:homeworld :homeworld],
-            [3 8] [:planet-1],
-            [5 7] [:planet-1],
-            [5 6] [:empty]}
-           (shared/assemble [(shared/tile 4 7 shared/homeworld-tile)
-                             (shared/tile 4 7 (-> shared/homeworld-tile
-                                                  (shared/rotate-tile)
-                                                  (shared/rotate-tile)))])))))
+    (is (= {[11 1] [:planet-1 :planet-1],
+            [10 2] [:empty],
+            [11 2] [:homeworld :homeworld],
+            [10 3] [:planet-1],
+            [12 2] [:planet-1],
+            [12 1] [:empty]}
+           (shared/assemble [(shared/tile 11 2 shared/homeworld-tile)
+                             (shared/tile 11 2 (-> shared/homeworld-tile
+                                                   (shared/rotate-tile)
+                                                   (shared/rotate-tile)))])))))
+
+(deftest cells-in-error-test
+  (testing "once assembled multiple cells at the same coordinate"
+    (is (= {[11 1] [:planet-1 :planet-1],
+            [11 2] [:homeworld :homeworld]}
+           (shared/cells-in-error {[11 1] [:planet-1 :planet-1],
+                                   [10 2] [:empty],
+                                   [11 2] [:homeworld :homeworld],
+                                   [10 3] [:planet-1],
+                                   [12 2] [:planet-1],
+                                   [12 1] [:empty]})))))
